@@ -1,0 +1,27 @@
+{
+  "id": "popos",
+  "name": "Pop!_OS",
+  "description": "Pop!_OS is an operating system for STEM and creative professionals who use their computer as a tool to discover and create.",
+  "homepage": "https://pop.system76.com",
+  "logo_url": "https://upload.wikimedia.org/wikipedia/commons/b/b5/Pop%21_OS_Icon.svg",
+  "category": "Desktop",
+  "family": "debian",
+  "base_distro": "ubuntu",  "secure_boot_compatible": true,  "popularity_rank": 8,
+  "releases": [
+    {
+      "version": "22.04",
+      "release_date": "2026-01-21",
+      "iso_url": "https://iso.pop-os.org/22.04/amd64/intel/36/pop-os_22.04_amd64_intel_36.iso",
+      "sha256": "7ebc16aa3d48f9ef5cbca518f106f77580f8d1bb2739f5db57b73d03209cd48b",
+      "size_mb": 2472,
+      "architecture": "x86_64",
+      "mirrors": [],
+      "gpg_verified": true
+    }
+  ],
+  "metadata": {
+    "last_updated": "2026-01-21T20:13:06Z",
+    "maintainer": "LUXusb Team",
+    "verified": true
+  }
+}

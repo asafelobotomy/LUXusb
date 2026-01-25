@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Linux Distribution Families",
+  "description": "Metadata for distribution families used in the family selection wizard",
+  "families": {
+    "arch": {
+      "id": "arch",
+      "name": "Arch-based",
+      "display_name": "Arch-based Distributions",
+      "description": "Rolling release distributions with cutting-edge packages and minimal default installation.",
+      "icon": "🏔️",
+      "characteristics": [
+        "Rolling release model",
+        "Cutting-edge software",
+        "Minimal base system",
+        "Extensive customization",
+        "AUR package repository"
+      ],
+      "target_users": [
+        "Advanced users",
+        "Power users who want control",
+        "Those who prefer latest packages"
+      ],
+      "color": "#1793d1",
+      "sort_order": 1
+    },
+    "debian": {
+      "id": "debian",
+      "name": "Debian-based",
+      "display_name": "Debian-based Distributions",
+      "description": "Stable, well-tested distributions known for reliability and extensive package repositories.",
+      "icon": "🌀",
+      "characteristics": [
+        "Stable and well-tested",
+        "Extensive package repositories",
+        "Strong community support",
+        "Long-term support (LTS) options",
+        "User-friendly derivatives available"
+      ],
+      "target_users": [
+        "Beginners to Linux",
+        "Users seeking stability",
+        "Desktop and server users",
+        "Those wanting easy setup"
+      ],
+      "color": "#d70751",
+      "sort_order": 2
+    },
+    "fedora": {
+      "id": "fedora",
+      "name": "Fedora-based",
+      "display_name": "Fedora-based Distributions",
+      "description": "Modern distributions featuring latest stable technologies and frequent updates.",
+      "icon": "🎩",
+      "characteristics": [
+        "Modern features",
+        "Frequent updates",
+        "Latest stable software",
+        "Strong security focus",
+        "GNOME desktop default"
+      ],
+      "target_users": [
+        "Developers",
+        "Users wanting modern features",
+        "Those comfortable with updates",
+        "Open source advocates"
+      ],
+      "color": "#294172",
+      "sort_order": 3
+    },
+    "independent": {
+      "id": "independent",
+      "name": "Independent",
+      "display_name": "Independent Distributions",
+      "description": "Unique distributions with custom architecture and package management.",
+      "icon": "⚡",
+      "characteristics": [
+        "Unique architecture",
+        "Custom package management",
+        "Specialized use cases",
+        "Innovation focus"
+      ],
+      "target_users": [
+        "Advanced users",
+        "Specialized requirements",
+        "Those seeking alternatives"
+      ],
+      "color": "#73ba25",
+      "sort_order": 4
+    }
+  }
+}

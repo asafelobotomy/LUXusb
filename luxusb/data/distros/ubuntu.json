@@ -1,0 +1,32 @@
+{
+  "id": "ubuntu",
+  "name": "Ubuntu Desktop",
+  "description": "Ubuntu is a complete desktop Linux operating system, freely available with both community and professional support.",
+  "homepage": "https://ubuntu.com",
+  "logo_url": "https://upload.wikimedia.org/wikipedia/commons/9/9e/UbuntuCoF.svg",
+  "category": "Desktop",
+  "family": "debian",
+  "base_distro": "debian",
+  "secure_boot_compatible": true,
+  "popularity_rank": 1,
+  "releases": [
+    {
+      "version": "24.04.3",
+      "release_date": "2026-01-23",
+      "iso_url": "https://releases.ubuntu.com/24.04/ubuntu-24.04.3-desktop-amd64.iso",
+      "sha256": "faabcf33ae53976d2b8207a001ff32f4e5daae013505ac7188c9ea63988f8328",
+      "size_mb": 6051,
+      "architecture": "x86_64",
+      "mirrors": [
+        "https://mirror.math.princeton.edu/pub/ubuntu-iso/24.04/ubuntu-24.04.3-desktop-amd64.iso",
+        "https://mirror.pit.teraswitch.com/ubuntu-releases/24.04/ubuntu-24.04.3-desktop-amd64.iso"
+      ],
+      "gpg_verified": true
+    }
+  ],
+  "metadata": {
+    "last_updated": "2026-01-23T09:32:50Z",
+    "maintainer": "LUXusb Team",
+    "verified": true
+  }
+}

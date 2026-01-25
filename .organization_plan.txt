@@ -1,0 +1,37 @@
+# Repository Organization Plan
+
+## 1. Root Directory Cleanup
+Move test/utility scripts to appropriate locations:
+- test_*.py → archive/test-scripts/
+- fix_grub_config.py → scripts/maintenance/
+- refresh_grub.py → scripts/maintenance/
+- validate_partition_layout.py → scripts/validation/
+
+## 2. Documentation Consolidation
+Root docs (keep only essential):
+- README.md (main entry point)
+- CHANGELOG.md
+- CONTRIBUTING.md
+- LICENSE
+- ROADMAP.md
+
+Move to docs/:
+- AUTOMATION_CHECKLIST.md → docs/
+- PROJECT_OVERVIEW.md → docs/
+- REPOSITORY_STRUCTURE.md → docs/
+- QUICK_FIX_REFERENCE.md → docs/
+- TEST_RESULTS.md → archive/
+- REPO_REVIEW_2026-01-23.md → archive/
+
+## 3. Archive Organization
+archive/
+  phase-docs/ (already good)
+  test-scripts/ (new)
+  old-reviews/ (new)
+
+## 4. Docs Organization
+docs/
+  architecture/
+  development/
+  user-guides/
+  automation/

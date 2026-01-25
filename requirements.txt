@@ -1,0 +1,29 @@
+# Core dependencies
+PyGObject>=3.42.0
+pycairo>=1.20.0
+requests>=2.31.0
+urllib3>=2.0.0
+
+# System interaction
+psutil>=5.9.0
+pyudev>=0.24.0
+
+# Progress and UI
+tqdm>=4.65.0
+
+# Configuration
+PyYAML>=6.0.2
+toml>=0.10.2
+
+# Utilities
+python-dateutil>=2.8.2
+humanize>=4.6.0
+beautifulsoup4>=4.12.0  # For automated checksum fetching
+Pillow>=10.0.0  # For icon conversion and image processing
+
+# Development dependencies (optional)
+pytest>=7.3.0
+pytest-cov>=4.1.0
+black>=23.3.0
+flake8>=6.0.0
+mypy>=1.3.0

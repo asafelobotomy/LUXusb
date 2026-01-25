@@ -1,0 +1,32 @@
+{
+  "id": "linuxmint",
+  "name": "Linux Mint",
+  "description": "Linux Mint is an elegant, easy to use, up to date and comfortable desktop operating system.",
+  "homepage": "https://linuxmint.com",
+  "logo_url": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Linux_Mint_logo_without_wordmark.svg",
+  "category": "Desktop",
+  "family": "debian",
+  "base_distro": "ubuntu",
+  "secure_boot_compatible": true,
+  "popularity_rank": 4,
+  "releases": [
+    {
+      "version": "22",
+      "release_date": "2024-07-16",
+      "iso_url": "https://mirrors.edge.kernel.org/linuxmint/stable/22/linuxmint-22-cinnamon-64bit.iso",
+      "sha256": "7a04b54830004e945c1eda6ed6ec8c57ff4b249de4b331bd021a849694f29b8f",
+      "size_mb": 2773,
+      "architecture": "x86_64",
+      "mirrors": [
+        "https://mirrors.layeronline.com/linuxmint/stable/22/linuxmint-22-cinnamon-64bit.iso",
+        "https://ftp.linux.org.tr/linuxmint/iso/stable/22/linuxmint-22-cinnamon-64bit.iso"
+      ],
+      "gpg_verified": true
+    }
+  ],
+  "metadata": {
+    "last_updated": "2026-01-23T09:32:52Z",
+    "maintainer": "LUXusb Team",
+    "verified": true
+  }
+}

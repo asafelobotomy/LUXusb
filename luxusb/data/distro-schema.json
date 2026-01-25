@@ -1,0 +1,163 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://luxusb.io/schemas/distro-v1.json",
+  "title": "Linux Distribution Metadata",
+  "description": "Schema for LUXusb distribution metadata files",
+  "type": "object",
+  "required": ["id", "name", "description", "homepage", "category", "family", "popularity_rank", "releases"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Unique identifier (lowercase, alphanumeric, hyphens only)",
+      "examples": ["ubuntu", "fedora", "arch-linux"]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Display name of the distribution",
+      "examples": ["Ubuntu", "Fedora Workstation"]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Brief description of the distribution",
+      "examples": ["Popular Linux distribution based on Debian"]
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "description": "Official homepage URL",
+      "examples": ["https://ubuntu.com"]
+    },
+    "logo_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to distribution logo image",
+      "examples": ["https://ubuntu.com/favicon.ico"]
+    },
+    "category": {
+      "type": "string",
+      "enum": ["Desktop", "Server", "Security", "Lightweight", "Development", "Gaming", "Education", "Specialized"],
+      "description": "Distribution category"
+    },
+    "family": {
+      "type": "string",
+      "enum": ["arch", "debian", "fedora", "independent"],
+      "description": "Distribution family/base (e.g., arch, debian, fedora)"
+    },
+    "base_distro": {
+      "type": "string",
+      "description": "Specific base distribution (e.g., 'ubuntu' for Mint, 'debian' for Ubuntu)",
+      "examples": ["debian", "ubuntu", "arch"]
+    },
+    "secure_boot_compatible": {
+      "type": "boolean",
+      "description": "Whether this distribution is compatible with Secure Boot mode",
+      "default": false
+    },
+    "popularity_rank": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Popularity ranking (lower is more popular)"
+    },
+    "releases": {
+      "type": "array",
+      "minItems": 1,
+      "description": "List of available releases",
+      "items": {
+        "type": "object",
+        "required": ["version", "release_date", "iso_url", "sha256", "size_mb", "architecture"],
+        "properties": {
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Release version",
+            "examples": ["24.04", "41", "12.5.0"]
+          },
+          "release_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Release date in YYYY-MM-DD format",
+            "examples": ["2024-04-25"]
+          },
+          "iso_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Primary ISO download URL",
+            "examples": ["https://releases.ubuntu.com/24.04/ubuntu-24.04-desktop-amd64.iso"]
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$",
+            "description": "SHA256 checksum of ISO file"
+          },
+          "size_mb": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "ISO file size in megabytes",
+            "examples": [3500, 2100]
+          },
+          "architecture": {
+            "type": "string",
+            "enum": ["x86_64", "i686", "aarch64", "armv7", "riscv64"],
+            "default": "x86_64",
+            "description": "CPU architecture"
+          },
+          "mirrors": {
+            "type": "array",
+            "description": "List of mirror URLs for failover",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "default": []
+          },
+          "gpg_verified": {
+            "type": "boolean",
+            "description": "Whether GPG/cryptographic verification is available",
+            "default": false
+          },
+          "cosign_available": {
+            "type": "boolean",
+            "description": "Whether cosign container verification is supported",
+            "default": false
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes about this release"
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata",
+      "properties": {
+        "last_updated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When this metadata was last updated"
+        },
+        "maintainer": {
+          "type": "string",
+          "description": "Maintainer of this metadata file"
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Whether checksums have been verified",
+          "default": false
+        },
+        "verification_tier": {
+          "type": "string",
+          "enum": ["excellent", "good", "adequate"],
+          "description": "Security verification level: excellent (cosign/API), good (GPG), adequate (SHA256 only)"
+        },
+        "note": {
+          "type": "string",
+          "description": "Additional metadata notes"
+        }
+      }
+    }
+  }
+}

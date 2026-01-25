@@ -1,0 +1,8 @@
+# Semgrep ignore rules for LUXusb
+# Ignore SHA256 checksum false positives in distro JSON files
+luxusb/data/distros/*.json
+luxusb/data/gpg_keys.json
+luxusb/data/distro-schema.json
+
+# Ignore test files with known patterns
+tests/*

@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "luxusb"
+dynamic = ["version"]
+description = "Create bootable USB drives with multiple Linux distributions"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "GPL-3.0"}
+authors = [
+    {name = "LUXusb Team", email = "contact@luxusb.org"}
+]
+keywords = ["usb", "bootable", "linux", "iso", "grub", "multiboot"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Boot",
+    "Topic :: Utilities",
+]
+
+dependencies = [
+    "PyGObject>=3.42.0",
+    "pycairo>=1.20.0",
+    "requests>=2.31.0",
+    "psutil>=5.9.0",
+    "pyudev>=0.24.0",
+    "pyyaml>=6.0",
+    "humanize>=4.6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.3.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.3.0",
+    "flake8>=6.0.0",
+    "mypy>=1.3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/solon/luxusb"
+Documentation = "https://github.com/solon/luxusb/blob/main/docs"
+Repository = "https://github.com/solon/luxusb"
+Issues = "https://github.com/solon/luxusb/issues"
+
+[project.scripts]
+luxusb = "luxusb.__main__:main"
+
+[tool.setuptools]
+packages = ["luxusb"]
+
+[tool.setuptools.dynamic]
+version = {attr = "luxusb._version.__version__"}
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

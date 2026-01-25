@@ -1,0 +1,31 @@
+{
+  "id": "cachyos-handheld",
+  "name": "CachyOS Handheld",
+  "description": "Optimized Arch-based distribution with performance-tuned kernel and handheld gaming PC support (Steam Deck, ROG Ally, etc.).",
+  "homepage": "https://cachyos.org",
+  "logo_url": "https://raw.githubusercontent.com/CachyOS/CachyOS-icons/master/cachyos-icon.svg",
+  "category": "Gaming",
+  "family": "arch",
+  "base_distro": "arch",  "secure_boot_compatible": false,  "popularity_rank": 12,
+  "releases": [
+    {
+      "version": "2025.08.24",
+      "release_date": "2025-08-24",
+      "iso_url": "https://mirror.cachyos.org/ISO/handheld/250824/cachyos-handheld-linux-250824.iso",
+      "sha256": "5bc526491829d9887b207ff37c39a5dd039f812f3095483430710b2a6ee1cbea",
+      "size_mb": 3500,
+      "architecture": "x86_64",
+      "mirrors": [
+        "https://mirror.cachyos.org/ISO/handheld/250824/cachyos-handheld-linux-250824.iso",
+        "https://sourceforge.net/projects/cachyos-arch/files/gui-installer/handheld/250824/cachyos-handheld-linux-250824.iso/download"
+      ],
+      "gpg_verified": true
+    }
+  ],
+  "metadata": {
+    "last_updated": "2026-01-22T00:00:00Z",
+    "maintainer": "LUXusb Team",
+    "verified": false,
+    "note": "CachyOS Handheld edition for gaming handhelds. Check wiki.cachyos.org for checksum verification."
+  }
+}

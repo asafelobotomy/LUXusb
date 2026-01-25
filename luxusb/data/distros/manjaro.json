@@ -1,0 +1,30 @@
+{
+  "id": "manjaro",
+  "name": "Manjaro Linux",
+  "description": "Manjaro is an accessible, friendly, open-source operating system based on Arch Linux.",
+  "homepage": "https://manjaro.org",
+  "logo_url": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Manjaro-logo.svg",
+  "category": "Desktop",
+  "family": "arch",
+  "base_distro": "arch",  "secure_boot_compatible": false,  "popularity_rank": 6,
+  "releases": [
+    {
+      "version": "24.0",
+      "release_date": "2026-01-23",
+      "iso_url": "https://download.manjaro.org/xfce/24.0/manjaro-xfce-24.0-240513-linux69.iso",
+      "sha256": "d59889bb3322a3dca8d82e7784a4eb0aeeac3f39ba4359821ebdd4e6dc2263d0",
+      "size_mb": 3414,
+      "architecture": "x86_64",
+      "mirrors": [
+        "https://mirror.yandex.ru/mirrors/manjaro/xfce/24.0/manjaro-xfce-24.0-240513-linux69.iso",
+        "https://ftp.lysator.liu.se/pub/manjaro/xfce/24.0/manjaro-xfce-24.0-240513-linux69.iso"
+      ],
+      "gpg_verified": true
+    }
+  ],
+  "metadata": {
+    "last_updated": "2026-01-23T09:32:54Z",
+    "maintainer": "LUXusb Team",
+    "verified": true
+  }
+}

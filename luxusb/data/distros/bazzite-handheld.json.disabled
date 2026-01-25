@@ -1,0 +1,32 @@
+{
+  "id": "bazzite-handheld",
+  "name": "Bazzite Handheld",
+  "description": "Gaming-optimized OS for handheld gaming PCs (Steam Deck, ROG Ally, Legion Go) with Steam Gaming Mode and console-like experience.",
+  "homepage": "https://bazzite.gg",
+  "logo_url": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Bazzite_Logo.svg",
+  "category": "Gaming",
+  "family": "fedora",
+  "base_distro": "fedora",
+  "popularity_rank": 10,
+  "releases": [
+    {
+      "version": "43.20260120",
+      "release_date": "2026-01-20",
+      "iso_url": "https://bazzite.gg/#image-picker",
+      "sha256": "REQUIRES_MANUAL_VERIFICATION",
+      "size_mb": 8500,
+      "architecture": "x86_64",
+      "mirrors": [],
+      "notes": "Bazzite uses dynamic ISO generation. LUXusb implements 3-tier verification: (1) Cosign container signature verification (recommended), (2) SourceForge mirror checksums, (3) Manual verification from bazzite.gg. When cosign is available, cryptographic verification is automatic.",
+      "gpg_verified": false,
+      "cosign_available": true
+    }
+  ],
+  "metadata": {
+    "last_updated": "2026-01-22T00:00:00Z",
+    "maintainer": "LUXusb Team",
+    "verified": true,
+    "verification_tier": "excellent",
+    "note": "Bazzite uses cosign container image verification (cryptographically signed). Automatic verification when cosign is installed. Fallback to SourceForge/GitHub checksums if cosign unavailable."
+  }
+}

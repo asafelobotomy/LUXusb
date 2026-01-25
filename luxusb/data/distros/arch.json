@@ -1,0 +1,33 @@
+{
+  "id": "arch",
+  "name": "Arch Linux",
+  "description": "A lightweight and flexible Linux distribution that tries to Keep It Simple.",
+  "homepage": "https://archlinux.org",
+  "logo_url": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Archlinux-logo-standard-version.svg",
+  "category": "Development",
+  "family": "arch",
+  "base_distro": "arch",
+  "secure_boot_compatible": false,
+  "popularity_rank": 5,
+  "releases": [
+    {
+      "version": "2026.01.01",
+      "release_date": "2026-01-01",
+      "iso_url": "https://geo.mirror.pkgbuild.com/iso/2026.01.01/archlinux-2026.01.01-x86_64.iso",
+      "sha256": "16502a7c18eed827ecead95c297d26f9f4bd57c4b3e4a8f4e2b88cf60e412d6f",
+      "size_mb": 1467,
+      "architecture": "x86_64",
+      "mirrors": [
+        "https://mirrors.kernel.org/archlinux/iso/2026.01.01/archlinux-2026.01.01-x86_64.iso",
+        "https://mirror.rackspace.com/archlinux/iso/2026.01.01/archlinux-2026.01.01-x86_64.iso",
+        "https://archlinux.uk.mirror.allworldit.com/archlinux/iso/2026.01.01/archlinux-2026.01.01-x86_64.iso"
+      ],
+      "gpg_verified": true
+    }
+  ],
+  "metadata": {
+    "last_updated": "2026-01-23T09:32:50Z",
+    "maintainer": "LUXusb Team",
+    "verified": true
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "opensuse-tumbleweed",
+  "name": "openSUSE Tumbleweed",
+  "description": "Rolling release distribution with latest software, Btrfs snapshots, YaST control panel, and enterprise-grade stability from SUSE.",
+  "homepage": "https://get.opensuse.org/tumbleweed",
+  "logo_url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/OpenSUSE_Logo.svg",
+  "category": "Desktop",
+  "family": "independent",
+  "base_distro": "opensuse",
+  "secure_boot_compatible": true,
+  "popularity_rank": 14,
+  "releases": [
+    {
+      "version": "20260123",
+      "release_date": "2026-01-23",
+      "iso_url": "https://download.opensuse.org/tumbleweed/iso/openSUSE-Tumbleweed-DVD-x86_64-Current.iso",
+      "sha256": "ff29028da4b4659c102bac224ae175e1b81c8098429db26ddd64cb5883518c2e",
+      "size_mb": 4300,
+      "architecture": "x86_64",
+      "mirrors": [
+        "https://ftp.halifax.rwth-aachen.de/opensuse/tumbleweed/iso/openSUSE-Tumbleweed-DVD-x86_64-Current.iso",
+        "https://mirror.yandex.ru/opensuse/tumbleweed/iso/openSUSE-Tumbleweed-DVD-x86_64-Current.iso",
+        "https://mirror.math.princeton.edu/pub/opensuse/tumbleweed/iso/openSUSE-Tumbleweed-DVD-x86_64-Current.iso"
+      ],
+      "gpg_verified": false
+    }
+  ],
+  "metadata": {
+    "last_updated": "2026-01-23T09:32:56Z",
+    "maintainer": "LUXusb Team",
+    "verified": true,
+    "note": "Tumbleweed is rolling release. Download .sha256 file from same directory and verify with GPG (opensuse@opensuse.org)."
+  }
+}

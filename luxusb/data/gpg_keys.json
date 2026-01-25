@@ -1,0 +1,107 @@
+{
+  "ubuntu": {
+    "description": "Ubuntu CD Image Automatic Signing Key",
+    "key_id": "843938DF228D22F7B3742BC0D94AA3F0EFE21092",
+    "key_server": "keyserver.ubuntu.com",
+    "key_url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x843938DF228D22F7B3742BC0D94AA3F0EFE21092",
+    "fingerprint": "8439 38DF 228D 22F7 B374  2BC0 D94A A3F0 EFE2 1092",
+    "signature_file": "SHA256SUMS.gpg",
+    "checksum_file": "SHA256SUMS"
+  },
+  "debian": {
+    "description": "Debian CD signing key",
+    "key_id": "DF9B9C49EAA9298432589D76DA87E80D6294BE9B",
+    "key_server": "keyring.debian.org",
+    "key_url": "https://ftp-master.debian.org/keys.html",
+    "fingerprint": "DF9B 9C49 EAA9 2984 3258  9D76 DA87 E80D 6294 BE9B",
+    "signature_file": "SHA256SUMS.sign",
+    "checksum_file": "SHA256SUMS"
+  },
+  "kali": {
+    "description": "Kali Linux Archive Automatic Signing Key (2025)",
+    "key_id": "827C8569F2518CC677FECA1AED65462EC8D5E4C5",
+    "key_server": "keyserver.ubuntu.com",
+    "key_url": "https://archive.kali.org/archive-key.asc",
+    "fingerprint": "827C 8569 F251 8CC6 77FE  CA1A ED65 462E C8D5 E4C5",
+    "signature_file": "SHA256SUMS.gpg",
+    "checksum_file": "SHA256SUMS"
+  },
+  "linuxmint": {
+    "description": "Linux Mint ISO Signing Key",
+    "key_id": "27DEB15644C6B3CF3BD7D291300F846BA25BAE09",
+    "key_server": "keyserver.ubuntu.com",
+    "key_url": "https://linuxmint.com/verify.php",
+    "fingerprint": "27DE B156 44C6 B3CF 3BD7  D291 300F 846B A25B AE09",
+    "signature_file": "sha256sum.txt.gpg",
+    "checksum_file": "sha256sum.txt"
+  },
+  "manjaro": {
+    "description": "Manjaro Build Server",
+    "key_id": "3B794DE6D4320FCE594F4171279E7CF5D8D56EC8",
+    "key_server": "keyserver.ubuntu.com",
+    "key_url": "https://gitlab.manjaro.org/packages/core/manjaro-keyring/-/raw/master/manjaro.gpg",
+    "fingerprint": "3B79 4DE6 D432 0FCE 594F  4171 279E 7CF5 D8D5 6EC8",
+    "signature_file": ".iso.sig",
+    "checksum_file": ".iso.sha256",
+    "note": "Signature file is per-ISO (.iso.sig), not for checksum file"
+  },
+  "fedora": {
+    "description": "Fedora (41, 42, 43) signing key",
+    "key_id": "6A51BBABBA3D5467B6171221809A8D7CEB10B464",
+    "key_server": "keyserver.ubuntu.com",
+    "key_url": "https://getfedora.org/security/",
+    "fingerprint": "6A51 BBAB BA3D 5467 B617  1221 809A 8D7C EB10 B464",
+    "signature_file": null,
+    "checksum_file": "*-CHECKSUM",
+    "note": "CHECKSUM file itself is GPG-signed, verify with: gpg --verify-files *-CHECKSUM"
+  },
+  "arch": {
+    "description": "Arch Linux Release Engineering",
+    "key_id": "3E80CA1A8B89F69CBA57D98A76A5EF9054449A5C",
+    "key_server": "keyserver.ubuntu.com",
+    "key_url": "https://archlinux.org/people/developers/",
+    "fingerprint": "3E80 CA1A 8B89 F69C BA57  D98A 76A5 EF90 5444 9A5C",
+    "signature_file": null,
+    "checksum_file": "sha256sums.txt",
+    "note": "Official API provides signed data; checksums available in ISO directory"
+  },
+  "popos": {
+    "description": "Pop!_OS ISO Signing Key (System76)",
+    "key_id": "63C46DF0140D738961429F4E204DD8AEC33A7AFF",
+    "key_server": "keyserver.ubuntu.com",
+    "key_url": "https://github.com/pop-os/iso#checksums",
+    "fingerprint": "63C4 6DF0 140D 7389 6142  9F4E 204D D8AE C33A 7AFF",
+    "signature_file": "SHA256SUMS.gpg",
+    "checksum_file": "SHA256SUMS",
+    "note": "GPG signatures exist but not prominently linked on download page"
+  },
+  "parrotos": {
+    "description": "Parrot Security Team Archive Signing Key",
+    "key_id": null,
+    "key_server": null,
+    "key_url": "https://deb.parrotsec.org/parrot/misc/parrotsec.gpg",
+    "fingerprint": null,
+    "signature_file": "signed-hashes.txt",
+    "checksum_file": "signed-hashes.txt",
+    "note": "GPG key downloaded directly from official repository; signed-hashes.txt is cleartext-signed"
+  },
+  "opensuse-tumbleweed": {
+    "description": "openSUSE Project Signing Key",
+    "key_id": "3DBDC284617901AB8B2F0C647E6827EC3A859E34",
+    "key_server": "keyserver.ubuntu.com",
+    "key_url": "https://download.opensuse.org/README.SUSE-KEYS",
+    "fingerprint": "3DBD C284 6179 01AB 8B2F  0C64 7E68 27EC 3A85 9E34",
+    "signature_file": "openSUSE-Tumbleweed-DVD-x86_64-Current.iso.sha256.asc",
+    "checksum_file": "openSUSE-Tumbleweed-DVD-x86_64-Current.iso.sha256"
+  },
+  "cachyos": {
+    "description": "CachyOS ISO Signing Key",
+    "key_id": "882DCFE48E2051D48E2562ABF3B607488DB35A47",
+    "key_server": "hkps://keys.openpgp.org",
+    "key_url": "https://wiki.cachyos.org/cachyos_basic/download/",
+    "fingerprint": "882D CFE4 8E20 51D4 8E25  62AB F3B6 0748 8DB3 5A47",
+    "signature_file": ".iso.sig",
+    "checksum_file": ".iso.sha256",
+    "note": "Per-ISO signature files (.iso.sig) similar to Manjaro"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "parrotos",
+  "name": "Parrot Security",
+  "description": "Security-focused distribution for penetration testing, computer forensics, reverse engineering, and privacy with over 50 million downloads.",
+  "homepage": "https://parrotsec.org",
+  "logo_url": "https://raw.githubusercontent.com/ParrotSec/parrot-themes/master/icons/parrot-logo.svg",
+  "category": "Security",
+  "family": "debian",
+  "base_distro": "debian",
+  "secure_boot_compatible": true,
+  "popularity_rank": 13,
+  "releases": [
+    {
+      "version": "7.0",
+      "release_date": "2025-12-24",
+      "iso_url": "https://deb.parrot.sh/parrot/iso/7.0/Parrot-security-7.0_amd64.iso",
+      "sha256": "b0a9602f15f7372bc942c14544f690216f089d56be055c3abfe93cf3c12c0b18",
+      "size_mb": 5500,
+      "architecture": "x86_64",
+      "mirrors": [
+        "https://mirrors.ocf.berkeley.edu/parrot/iso/7.0/Parrot-security-7.0_amd64.iso",
+        "https://mirror.freedif.org/ParrotSec/iso/7.0/Parrot-security-7.0_amd64.iso"
+      ],
+      "gpg_verified": true
+    }
+  ],
+  "metadata": {
+    "last_updated": "2026-01-22T00:00:00Z",
+    "maintainer": "LUXusb Team",
+    "verified": false,
+    "note": "Download sha256.txt from https://download.parrotsec.org/parrot/iso/7.0/ for checksum verification."
+  }
+}

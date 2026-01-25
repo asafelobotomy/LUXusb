@@ -1,0 +1,108 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Build artifacts
+*.AppImage
+*.AppDir/
+boot-environment/build/
+boot-environment/*.iso
+*.img
+*.part
+*.resume
+
+# Logs
+*.log
+logs/
+
+# Configuration (don't commit user configs)
+config.yaml
+luxusb.conf
+
+# Cache directories
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+Thumbs.db
+.DS_Store
+.directory
+
+# IDE and mypy
+.mypy_cache/
+.pytest_cache/
+
+# Project specific
+test_*.py
+!tests/test_*.py
+activate.sh
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+
+# Downloaded ISOs (for testing)
+test-isos/
+*.iso
+!boot-environment/*.iso
+
+# GPG/Cosign temporary files
+*.sig.tmp
+*.asc.tmp
+*.key.tmp
+
+# Documentation generation
+_build/
+.doctrees/
+
+# Package distribution
+*.whl
+*.tar.gz
+MANIFEST.in

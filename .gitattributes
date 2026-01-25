@@ -1,0 +1,12 @@
+# LUXusb Git Attributes Configuration
+
+# Exclude distro JSON files from secret scanning
+# These contain SHA256 checksums (public data), not secrets
+luxusb/data/distros/*.json linguist-generated=false
+luxusb/data/distros/*.json -diff
+
+# Exclude GPG keys JSON from secret scanning (public keys only)
+luxusb/data/gpg_keys.json linguist-generated=false
+
+# Mark JSON schema as vendored to reduce noise
+luxusb/data/distro-schema.json linguist-vendored=true

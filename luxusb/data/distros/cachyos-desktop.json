@@ -1,0 +1,33 @@
+{
+  "id": "cachyos-desktop",
+  "name": "CachyOS Desktop",
+  "description": "Arch-based distribution with optimized x86-64-v3/v4 packages, BORE scheduler, and blazingly fast performance for desktops.",
+  "homepage": "https://cachyos.org",
+  "logo_url": "https://raw.githubusercontent.com/CachyOS/CachyOS-icons/master/cachyos-icon.svg",
+  "category": "Desktop",
+  "family": "arch",
+  "base_distro": "arch",
+  "secure_boot_compatible": false,
+  "popularity_rank": 11,
+  "releases": [
+    {
+      "version": "2025.11.29",
+      "release_date": "2025-11-29",
+      "iso_url": "https://mirror.cachyos.org/ISO/desktop/251129/cachyos-desktop-linux-251129.iso",
+      "sha256": "2ab25f72ce8fece890b440cf9e260fc3d57ae4f5fb5308086f670240de02da7b",
+      "size_mb": 3500,
+      "architecture": "x86_64",
+      "mirrors": [
+        "https://mirror.cachyos.org/ISO/desktop/251129/cachyos-desktop-linux-251129.iso",
+        "https://sourceforge.net/projects/cachyos-arch/files/gui-installer/desktop/251129/cachyos-desktop-linux-251129.iso/download"
+      ],
+      "gpg_verified": true
+    }
+  ],
+  "metadata": {
+    "last_updated": "2026-01-22T00:00:00Z",
+    "maintainer": "LUXusb Team",
+    "verified": false,
+    "note": "CachyOS offers multiple editions (KDE, GNOME, XFCE, etc.). Visit wiki.cachyos.org for ISO verification instructions."
+  }
+}

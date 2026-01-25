@@ -1,0 +1,30 @@
+{
+  "id": "debian",
+  "name": "Debian",
+  "description": "Debian is a free operating system for your computer, composed entirely of free and open-source software.",
+  "homepage": "https://www.debian.org",
+  "logo_url": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Debian-OpenLogo.svg",
+  "category": "Desktop",
+  "family": "debian",
+  "base_distro": "debian",  "secure_boot_compatible": true,  "popularity_rank": 3,
+  "releases": [
+    {
+      "version": "13.3.0",
+      "release_date": "2026-01-23",
+      "iso_url": "https://cdimage.debian.org/debian-cd/current/amd64/iso-dvd/debian-13.3.0-amd64-DVD-1.iso",
+      "sha256": "7b7837fa2ed64fd45224bff905643bd3ab32157dcc0ab1dc68aad5b9dc2d4d39",
+      "size_mb": 0,
+      "architecture": "x86_64",
+      "mirrors": [
+        "https://mirrors.kernel.org/debian-cd/current/amd64/iso-dvd/debian-13.3.0-amd64-DVD-1.iso",
+        "https://mirror.init7.net/debian-cd/current/amd64/iso-dvd/debian-13.3.0-amd64-DVD-1.iso"
+      ],
+      "gpg_verified": true
+    }
+  ],
+  "metadata": {
+    "last_updated": "2026-01-23T09:32:51Z",
+    "maintainer": "LUXusb Team",
+    "verified": true
+  }
+}

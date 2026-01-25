@@ -1,0 +1,32 @@
+{
+  "id": "fedora",
+  "name": "Fedora Workstation",
+  "description": "Fedora Workstation is a reliable, user-friendly, and powerful operating system for laptops and desktops.",
+  "homepage": "https://fedoraproject.org",
+  "logo_url": "https://upload.wikimedia.org/wikipedia/commons/4/41/Fedora_icon_%282021%29.svg",
+  "category": "Desktop",
+  "family": "fedora",
+  "base_distro": "fedora",
+  "secure_boot_compatible": true,
+  "popularity_rank": 2,
+  "releases": [
+    {
+      "version": "41",
+      "release_date": "2026-01-23",
+      "iso_url": "https://download.fedoraproject.org/pub/fedora/linux/releases/41/Workstation/x86_64/iso/Fedora-Workstation-Live-x86_64-41-1.4.iso",
+      "sha256": "a2dd3caf3224b8f3a640d9e31b1016d2a4e98a6d7cb435a1e2030235976d6da2",
+      "size_mb": 2344,
+      "architecture": "x86_64",
+      "mirrors": [
+        "https://mirrors.kernel.org/fedora/releases/41/Workstation/x86_64/iso/Fedora-Workstation-Live-x86_64-41-1.4.iso",
+        "https://mirror.init7.net/fedora/fedora/linux/releases/41/Workstation/x86_64/iso/Fedora-Workstation-Live-x86_64-41-1.4.iso"
+      ],
+      "gpg_verified": false
+    }
+  ],
+  "metadata": {
+    "last_updated": "2026-01-23T09:32:53Z",
+    "maintainer": "LUXusb Team",
+    "verified": true
+  }
+}
