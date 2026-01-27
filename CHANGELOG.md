@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed - Repository Cleanup (2026-01-27)
+- **Root Directory** - Cleaned obsolete files (removed .organization_plan.txt)
+- **Documentation Organization** - Moved library review to docs/reference/
+- **Documentation Index** - Updated docs/README.md with new review document
+- **Root Files** - Now only 5 essential files (CHANGELOG, CONTRIBUTING, LICENSE, README, ROADMAP)
+- **Clean State** - Removed temporary planning artifacts from root
+
+### Fixed - Code Quality & Security (2026-01-27)
+- **Security Updates** - Updated dependencies with CVE fixes (requests>=2.32.0, Pillow>=10.3.0)
+- **Import Consolidation** - Centralized GTK4/Libadwaita imports in luxusb/gui/__init__.py
+- **DRY Principle** - Removed redundant gi.require_version() calls from 10 GUI files
+- **Import Efficiency** - Single source of truth for GTK version requirements
+- **Error Handling** - Added try/except for graceful GTK dependency failures
+
 ### Added - Phase 4: Repository Organization
 - **Comprehensive Documentation Navigation** - docs/README.md with task-based navigation
 - **Repository Structure Guide** - Complete docs/REPOSITORY_STRUCTURE.md with examples

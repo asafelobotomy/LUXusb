@@ -2,11 +2,8 @@
 Progress and installation page
 """
 
-import gi
-gi.require_version('Gtk', '4.0')
-gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, GLib
 import logging
+from luxusb.gui import Gtk, Adw, GLib
 import threading
 from pathlib import Path
 

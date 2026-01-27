@@ -6,10 +6,7 @@ import logging
 from datetime import datetime
 from typing import Optional
 
-import gi
-gi.require_version('Gtk', '4.0')
-gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, GLib
+from luxusb.gui import Gtk, Adw, GLib
 
 from luxusb.utils.update_scheduler import UpdateScheduler
 

@@ -6,10 +6,7 @@ import logging
 from typing import Optional, Callable, Any
 from threading import Thread
 
-import gi
-gi.require_version('Gtk', '4.0')
-gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, GLib, Gio
+from luxusb.gui import Gtk, Adw, GLib, Gio
 
 from luxusb import APP_NAME, APP_ID
 from luxusb.utils.usb_detector import USBDetector, USBDevice

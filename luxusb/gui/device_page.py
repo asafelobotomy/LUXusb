@@ -2,11 +2,8 @@
 USB device selection page
 """
 
-import gi
-gi.require_version('Gtk', '4.0')
-gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, GLib, GdkPixbuf, Gdk
 import logging
+from luxusb.gui import Gtk, Adw, GLib, GdkPixbuf, Gdk
 from typing import Any
 from pathlib import Path
 

@@ -50,6 +50,7 @@ Complete documentation for LUXusb - A GTK4-based Linux application for creating 
 - [GPG Verification](reference/GPG_VERIFICATION.md) - GPG signature verification
 - [Cosign Verification](reference/COSIGN_VERIFICATION.md) - Cosign verification system
 - [Dependency Resolution](reference/DEPENDENCY_RESOLUTION.md) - Package dependencies
+- [Library & Naming Review (2026-01-27)](reference/LIBRARY_NAMING_REVIEW_2026-01-27.md) - Comprehensive library and naming convention analysis
 
 #### 📝 Project Management
 - [Project Overview](PROJECT_OVERVIEW.md) - High-level project information

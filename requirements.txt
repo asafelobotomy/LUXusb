@@ -1,7 +1,7 @@
 # Core dependencies
 PyGObject>=3.42.0
 pycairo>=1.20.0
-requests>=2.31.0
+requests>=2.32.0  # Updated for CVE-2024-35195 fix
 urllib3>=2.0.0
 
 # System interaction
@@ -19,7 +19,7 @@ toml>=0.10.2
 python-dateutil>=2.8.2
 humanize>=4.6.0
 beautifulsoup4>=4.12.0  # For automated checksum fetching
-Pillow>=10.0.0  # For icon conversion and image processing
+Pillow>=10.3.0  # Updated for CVE-2024-28219 fix
 
 # Development dependencies (optional)
 pytest>=7.3.0
