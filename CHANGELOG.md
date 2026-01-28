@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed - Critical GRUB Boot Errors (2026-01-27)
+- **GRUB Syntax Errors** - Removed Bash-specific redirection syntax (2>/dev/null) not supported by GRUB parser
+- **Partition Search Reliability** - Added multi-method fallback search (hd0, hd1, exhaustive) for different hardware configs
+- **File Validation** - Added ISO existence checks before loopback mounting to prevent cascade failures
+- **Error Diagnostics** - Enhanced error messages with partition info and directory listings for troubleshooting
+- **Loopback Verification** - Added status checks after loopback mount attempts with clear error reporting
+- **Cross-Hardware Support** - USB now boots correctly whether it's first drive (hd0) or second drive (hd1)
+- **Comprehensive Analysis** - Created detailed root cause analysis and fix documentation in docs/fixes/
+
 ### Changed - Repository Cleanup (2026-01-27)
 - **Root Directory** - Cleaned obsolete files (removed .organization_plan.txt)
 - **Documentation Organization** - Moved library review to docs/reference/

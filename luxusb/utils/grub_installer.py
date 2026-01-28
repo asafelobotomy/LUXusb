@@ -367,16 +367,46 @@ menuentry '{display_name} {release.version}'{hotkey_attr} {{
     echo "Loading {distro.name}..."
     
     # Find data partition (partition 3 on USB device)
-    # Use both label search and hint for better reliability
+    # Multi-method search with fallbacks for different hardware configurations
     search --no-floppy --set=root --label LUXusb --hint hd0,gpt3
+    if [ "$root" = "" ]; then
+        # Fallback: USB might be second drive (hd1)
+        search --no-floppy --set=root --label LUXusb --hint hd1,gpt3
+    fi
+    if [ "$root" = "" ]; then
+        # Fallback: Exhaustive search without hint
+        search --no-floppy --set=root --label LUXusb
+    fi
+    
+    # Verify partition was found
+    if [ "$root" = "" ]; then
+        echo "ERROR: Could not find LUXusb data partition"
+        echo "Please check USB device is inserted correctly"
+        echo "Press any key to return to menu..."
+        read
+        return
+    fi
     echo "Found root partition: $root"
     
     # Verify TPM is unloaded (critical for GRUB 2.04+)
-    rmmod tpm 2>/dev/null || true
+    # Note: Errors are automatically suppressed in GRUB
+    rmmod tpm
+    
+    # Verify ISO file exists before attempting loopback
+    set isopath="{iso_rel}"
+    if [ ! -f "$isopath" ]; then
+        echo "ERROR: ISO file not found: $isopath"
+        echo "Partition: $root"
+        echo "Contents of /isos/:"
+        ls /isos/ || echo "Cannot list /isos/ directory"
+        echo "Press any key to return to menu..."
+        read
+        return
+    fi
     
     # Load ISO via loopback
     echo "Loading ISO: {iso_rel}"
-    loopback loop {iso_rel}
+    loopback loop "$isopath"
     
 {boot_cmds}
 }}
@@ -516,16 +546,38 @@ menuentry '{display_name} {release.version}'{hotkey_attr} {{
 menuentry '{custom_iso.display_name} (Custom)' {{
     echo "Loading custom ISO: {custom_iso.display_name}"
     
-    # Find data partition with hint for better reliability
+    # Find data partition with fallbacks
     search --no-floppy --set=root --label LUXusb --hint hd0,gpt3
+    if [ "$root" = "" ]; then
+        search --no-floppy --set=root --label LUXusb --hint hd1,gpt3
+    fi
+    if [ "$root" = "" ]; then
+        search --no-floppy --set=root --label LUXusb
+    fi
+    
+    if [ "$root" = "" ]; then
+        echo "ERROR: Could not find LUXusb data partition"
+        echo "Press any key to return to menu..."
+        read
+        return
+    fi
     echo "Found root partition: $root"
     
     # Verify TPM is unloaded
-    rmmod tpm 2>/dev/null || true
+    rmmod tpm
+    
+    # Verify ISO exists
+    set isopath="{iso_rel}"
+    if [ ! -f "$isopath" ]; then
+        echo "ERROR: Custom ISO not found: $isopath"
+        echo "Press any key to return to menu..."
+        read
+        return
+    fi
     
     # Load ISO via loopback
     echo "Loading ISO: {iso_rel}"
-    loopback loop {iso_rel}
+    loopback loop "$isopath"
     
     # Generic boot attempt
     # Try common boot paths
