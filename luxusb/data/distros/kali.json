@@ -6,11 +6,13 @@
   "logo_url": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Kali-dragon-icon.svg",
   "category": "Security",
   "family": "debian",
-  "base_distro": "debian",  "secure_boot_compatible": true,  "popularity_rank": 7,
+  "base_distro": "debian",
+  "secure_boot_compatible": true,
+  "popularity_rank": 7,
   "releases": [
     {
       "version": "2025.4",
-      "release_date": "2026-01-23",
+      "release_date": "2026-01-29",
       "iso_url": "https://cdimage.kali.org/kali-2025.4/kali-linux-2025.4-installer-amd64.iso",
       "sha256": "3b4a3a9f5fb6532635800d3eda94414fb69a44165af6db6fa39c0bdae750c266",
       "size_mb": 4513,
@@ -20,7 +22,7 @@
     }
   ],
   "metadata": {
-    "last_updated": "2026-01-23T09:32:52Z",
+    "last_updated": "2026-01-29T08:56:26Z",
     "maintainer": "LUXusb Team",
     "verified": true
   }

@@ -303,7 +303,11 @@ class BootloaderSigner:
                 break
         
         if not shim_src:
-            self.logger.warning("Shim bootloader not found, skipping installation")
+            self.logger.warning("Shim bootloader not found")
+            self.logger.info("To enable Secure Boot support, install shim-signed:")
+            self.logger.info("  Ubuntu/Debian: sudo apt install shim-signed")
+            self.logger.info("  Fedora: sudo dnf install shim-x64")
+            self.logger.info("  Arch: sudo pacman -S shim-signed")
             return False
         
         # Copy shim to EFI partition
@@ -325,6 +329,28 @@ class BootloaderSigner:
         except subprocess.CalledProcessError as e:
             self.logger.error(f"Failed to install shim: {e.stderr}")
             return False
+    
+    def get_shim_install_instructions(self) -> str:
+        """
+        Get installation instructions for shim bootloader
+        
+        Returns:
+            Formatted instructions string for display
+        """
+        return """Secure Boot support requires the 'shim-signed' package.
+
+Install it using your package manager:
+
+Ubuntu/Debian:
+    sudo apt install shim-signed
+
+Fedora:
+    sudo dnf install shim-x64
+
+Arch Linux:
+    sudo pacman -S shim-signed
+
+After installing, try creating the USB again with Secure Boot enabled."""
 
 
 def detect_secure_boot() -> SecureBootStatus:

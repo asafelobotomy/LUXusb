@@ -212,6 +212,9 @@ class ISODownloader:
         """Save resume metadata to JSON file"""
         metadata_path = self._get_metadata_path(Path(metadata.destination))
         try:
+            # Ensure parent directory exists (defensive coding)
+            metadata_path.parent.mkdir(parents=True, exist_ok=True)
+            
             with open(metadata_path, 'w') as f:
                 json.dump(metadata.to_dict(), f, indent=2)
             logger.debug("Resume metadata saved: %s", metadata_path)
@@ -461,6 +464,9 @@ class ISODownloader:
             import time
             start_time = time.time()
             last_update_time = start_time
+            
+            # Ensure destination directory exists (defensive coding)
+            destination.parent.mkdir(parents=True, exist_ok=True)
             
             with open(destination, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=chunk_size):

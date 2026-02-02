@@ -11,6 +11,8 @@ A user-friendly AppImage application for creating bootable USB drives with multi
 - ✅ ISO integrity verification (SHA256 + GPG)
 - 🔐 **Cosign verification** - Cryptographic verification for container-based distros
 - 🚀 GRUB2-based multi-boot support
+  - **32-bit UEFI support** - Boots on 2010-2012 Atom tablets (i386-efi + x86_64-efi)
+  - **MEMDISK fallback** - Loads small ISOs (<512MB) directly into RAM for compatibility
 - 🔒 **Secure Boot signing** - Sign bootloader with MOK keys
 - 🔄 Pause/resume downloads with mirror failover
 - 🤖 **Automatic distro updates** - Tools to keep ISO links current
@@ -54,8 +56,23 @@ Boot Environment (USB)
 > Install cosign for 100% automated Bazzite verification!
 
 ### Target USB
-- 8GB+ capacity recommended
-- USB 2.0+ (USB 3.0+ recommended)
+- **Capacity**: 8GB+ recommended (4GB minimum for single ISO)
+- **Speed**: USB 2.0+ supported (USB 3.0+ recommended for faster transfers)
+- **Compatibility**: 
+  - Modern systems (2015+): Full compatibility with exFAT
+  - Legacy systems (2010-2015): 95%+ compatible, may need `rootdelay=30` kernel parameter
+  - Older USB 2.0 controllers (~5%): Known firmware bugs with exFAT, use FAT32 if boot fails
+
+#### Filesystem Trade-offs
+LUXusb uses **exFAT** by default for the data partition:
+- ✅ **Advantages**: Supports ISOs >4GB (Windows 11, some Fedora spins)
+- ⚠️ **Known issue**: ~5% of USB 2.0 controllers have firmware bugs causing slow enumeration
+- 🔧 **Workaround**: If boot hangs, add `rootdelay=30` to GRUB kernel parameters, or reformat USB with FAT32 (4GB file limit)
+
+**When to use FAT32 instead**:
+- All your ISOs are <4GB
+- Using older USB 2.0 hardware (pre-2010)
+- Maximum compatibility is critical
 
 ## Quick Start
 
@@ -165,6 +182,64 @@ See [DISTRO_MANAGEMENT.md](docs/DISTRO_MANAGEMENT.md) for full details and [COSI
 - ISO checksum verification
 - Atomic operations (rollback on failure)
 - Clear error messages
+
+## Troubleshooting
+
+### USB Not Booting
+
+**Symptom**: System doesn't detect the USB drive at boot
+
+**Solutions**:
+1. **BIOS settings**: Enable "USB Boot" in BIOS/UEFI settings
+2. **Boot order**: Set USB as first boot device
+3. **Legacy vs UEFI**: Try toggling between Legacy/UEFI boot modes
+4. **USB port**: Try different USB ports (USB 2.0 ports may be more reliable on older systems)
+
+### Boot Hangs with "Waiting for USB"
+
+**Symptom**: Boot process hangs with message about waiting for USB device
+
+**Solutions**:
+1. **Slow enumeration**: Add `rootdelay=30` to GRUB kernel parameters:
+   - Press `e` at GRUB menu
+   - Add `rootdelay=30` to the `linux` line
+   - Press `Ctrl+X` to boot
+2. **USB 2.0 compatibility**: ~5% of USB 2.0 controllers have firmware bugs with exFAT
+   - If issue persists, reformat USB with FAT32 (4GB file size limit)
+
+### 32-bit UEFI Systems (2010-2012 Tablets)
+
+**Symptom**: "No bootable device" on Atom-based tablets/netbooks
+
+**Solution**: LUXusb automatically installs both i386-efi and x86_64-efi GRUB targets. If boot still fails:
+1. Verify host system has `grub-efi-ia32-bin` package installed:
+   - Debian/Ubuntu: `sudo apt install grub-efi-ia32-bin`
+   - Fedora: `sudo dnf install grub2-efi-ia32-modules`
+   - Arch: `sudo pacman -S grub`
+2. Recreate USB with updated host system
+
+### Secure Boot Errors
+
+**Symptom**: "Secure Boot violation" or "shim-signed not found"
+
+**Solution**: Install shim bootloader:
+- Ubuntu/Debian: `sudo apt install shim-signed`
+- Fedora: `sudo dnf install shim-x64`
+- Arch: `sudo pacman -S shim-signed`
+
+Then disable Secure Boot in BIOS or recreate USB after installing shim.
+
+### Small ISOs Not Booting
+
+**Symptom**: Utility ISOs (<512MB) like GParted/Clonezilla fail to boot
+
+**Solution**: LUXusb automatically generates MEMDISK fallback entries for small ISOs. Look for "(RAM Boot)" entries in the GRUB menu.
+
+Requirements:
+- Host system needs `syslinux-common` or `syslinux` package installed
+- Debian/Ubuntu: `sudo apt install syslinux-common`
+- Fedora: `sudo dnf install syslinux`
+- Arch: `sudo pacman -S syslinux`
 
 ## Contributing
 

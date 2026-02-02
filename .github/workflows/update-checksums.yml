@@ -1,0 +1,154 @@
+name: Update Distribution Checksums
+
+on:
+  schedule:
+    # Run every Monday at 00:00 UTC
+    - cron: '0 0 * * 1'
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-checksums:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for accurate diffs
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install beautifulsoup4 lxml
+      
+      - name: Fetch latest checksums
+        id: fetch
+        run: |
+          echo "Fetching checksums from official sources..."
+          python scripts/fetch_checksums.py --no-cache > checksum_report.txt 2>&1
+          cat checksum_report.txt
+          
+          # Check if any checksums differ
+          if grep -q "⚠️  DIFFERENT" checksum_report.txt; then
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+            echo "::notice::Checksum mismatches detected"
+          else
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+            echo "::notice::All checksums are up to date"
+          fi
+      
+      - name: Update distro manager
+        if: steps.fetch.outputs.changes_detected == 'true'
+        run: |
+          echo "Updating distro_manager.py with new checksums..."
+          python scripts/fetch_checksums.py --update --no-cache
+      
+      - name: Verify changes
+        if: steps.fetch.outputs.changes_detected == 'true'
+        id: changes
+        run: |
+          if git diff --quiet luxusb/utils/distro_manager.py; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "::warning::No file changes despite checksum mismatches"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            
+            # Extract changed distros
+            changed_distros=$(git diff luxusb/utils/distro_manager.py | grep -E '^\+.*sha256=' | wc -l)
+            echo "changed_count=$changed_distros" >> $GITHUB_OUTPUT
+            echo "::notice::Updated $changed_distros distribution checksum(s)"
+          fi
+      
+      - name: Create Pull Request
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: Update distribution checksums'
+          committer: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
+          author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
+          branch: automated/checksum-updates
+          delete-branch: true
+          title: '🔄 Automated Checksum Update'
+          body: |
+            ## Automated Checksum Update
+            
+            This PR updates distribution checksums fetched from official sources.
+            
+            ### Changes
+            - Updated ${{ steps.changes.outputs.changed_count }} distribution checksum(s)
+            - Fetched from official download pages and SHA256SUMS files
+            - Automated by `scripts/fetch_checksums.py`
+            
+            ### Verification
+            The script automatically:
+            - ✅ Downloads checksums from official sources
+            - ✅ Compares with current values in `distro_manager.py`
+            - ✅ Updates only mismatched checksums
+            
+            ### Review Checklist
+            - [ ] Verify changed distributions are expected
+            - [ ] Check that ISO URLs haven't changed (only checksums)
+            - [ ] Run manual verification: `python scripts/fetch_checksums.py`
+            
+            **Note**: This is an automated update. Please review changes before merging.
+            
+            ---
+            <details>
+            <summary>📋 Full Checksum Report</summary>
+            
+            ```
+            ${{ steps.fetch.outputs.report }}
+            ```
+            </details>
+          labels: |
+            automated
+            checksums
+            maintenance
+          reviewers: |
+            solon
+          draft: false
+      
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksum-report
+          path: checksum_report.txt
+          retention-days: 30
+      
+      - name: Comment on existing PR
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('checksum_report.txt', 'utf8');
+            
+            // Find existing PR
+            const pulls = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: `${context.repo.owner}:automated/checksum-updates`
+            });
+            
+            if (pulls.data.length > 0) {
+              const pr = pulls.data[0];
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: `### 🔄 Checksums Updated Again\n\nThe workflow detected additional checksum changes and updated this PR.\n\n<details>\n<summary>Latest Report</summary>\n\n\`\`\`\n${report}\n\`\`\`\n</details>\n\n*Updated: ${new Date().toISOString()}*`
+              });
+            }

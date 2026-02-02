@@ -6,6 +6,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
+from luxusb._version import __version__
 from luxusb.gui import Gtk, Gdk, GdkPixbuf
 
 logger = logging.getLogger(__name__)
@@ -79,7 +80,7 @@ class SplashWindow(Gtk.Window):
             main_box.append(label)
         
         # Version and tagline
-        version_label = Gtk.Label(label="Version 0.2.1")
+        version_label = Gtk.Label(label=f"Version {__version__}")
         version_label.add_css_class("caption")
         version_label.add_css_class("dim-label")
         main_box.append(version_label)

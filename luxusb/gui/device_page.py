@@ -170,6 +170,16 @@ class DeviceSelectionPage(Adw.NavigationPage):
             iso_label.set_ellipsize(3)  # Ellipsize at end
             info_box.append(iso_label)
         
+        # Show LUXusb version that created this USB
+        if device.is_luxusb_configured and device.luxusb_state:
+            version_text = f"Created with LUXusb v{device.luxusb_state.luxusb_version}"
+            version_label = Gtk.Label(label=version_text)
+            version_label.set_halign(Gtk.Align.START)
+            version_label.add_css_class("caption")
+            version_label.add_css_class("dim-label")
+            version_label.set_tooltip_text(f"This USB was created using LUXusb version {device.luxusb_state.luxusb_version}")
+            info_box.append(version_label)
+        
         # Show Secure Boot status if configured
         if device.is_luxusb_configured and device.luxusb_state:
             sb_enabled = getattr(device.luxusb_state, 'secure_boot_enabled', False)

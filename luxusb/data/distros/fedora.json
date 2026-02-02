@@ -12,7 +12,7 @@
   "releases": [
     {
       "version": "41",
-      "release_date": "2026-01-23",
+      "release_date": "2026-01-29",
       "iso_url": "https://download.fedoraproject.org/pub/fedora/linux/releases/41/Workstation/x86_64/iso/Fedora-Workstation-Live-x86_64-41-1.4.iso",
       "sha256": "a2dd3caf3224b8f3a640d9e31b1016d2a4e98a6d7cb435a1e2030235976d6da2",
       "size_mb": 2344,
@@ -25,7 +25,7 @@
     }
   ],
   "metadata": {
-    "last_updated": "2026-01-23T09:32:53Z",
+    "last_updated": "2026-01-29T08:56:27Z",
     "maintainer": "LUXusb Team",
     "verified": true
   }

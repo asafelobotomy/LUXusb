@@ -11,10 +11,10 @@
   "popularity_rank": 14,
   "releases": [
     {
-      "version": "20260123",
-      "release_date": "2026-01-23",
+      "version": "20260129",
+      "release_date": "2026-01-29",
       "iso_url": "https://download.opensuse.org/tumbleweed/iso/openSUSE-Tumbleweed-DVD-x86_64-Current.iso",
-      "sha256": "ff29028da4b4659c102bac224ae175e1b81c8098429db26ddd64cb5883518c2e",
+      "sha256": "1650d689a248befed4bf618fcba76c9a404bfdab560f7cee3f18dc4c5033618b",
       "size_mb": 4300,
       "architecture": "x86_64",
       "mirrors": [
@@ -26,7 +26,7 @@
     }
   ],
   "metadata": {
-    "last_updated": "2026-01-23T09:32:56Z",
+    "last_updated": "2026-01-29T08:56:29Z",
     "maintainer": "LUXusb Team",
     "verified": true,
     "note": "Tumbleweed is rolling release. Download .sha256 file from same directory and verify with GPG (opensuse@opensuse.org)."

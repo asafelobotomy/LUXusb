@@ -9,6 +9,7 @@ from threading import Thread
 from luxusb.gui import Gtk, Adw, GLib, Gio
 
 from luxusb import APP_NAME, APP_ID
+from luxusb._version import __version__
 from luxusb.utils.usb_detector import USBDetector, USBDevice
 from luxusb.utils.distro_manager import DistroSelection
 from luxusb.utils.custom_iso import CustomISO
@@ -319,7 +320,7 @@ class LUXusbApplication(Adw.Application):
             application_name=APP_NAME,
             application_icon=APP_ID,
             developer_name="LUXusb Contributors",
-            version="0.2.0",
+            version=__version__,
             website="https://github.com/solon/luxusb",
             issue_url="https://github.com/solon/luxusb/issues",
             license_type=Gtk.License.GPL_3_0,

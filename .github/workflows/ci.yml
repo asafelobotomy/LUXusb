@@ -1,0 +1,134 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3-gi \
+            gir1.2-gtk-4.0 \
+            gir1.2-adwaita-1 \
+            libgirepository1.0-dev \
+            parted \
+            dosfstools \
+            e2fsprogs
+      
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-mock
+      
+      - name: Run unit tests
+        run: |
+          pytest -v --cov=luxusb --cov-report=term-missing --cov-report=xml
+      
+      - name: Check code formatting (black)
+        run: |
+          pip install black
+          black --check luxusb/ tests/
+      
+      - name: Check imports (isort)
+        run: |
+          pip install isort
+          isort --check-only luxusb/ tests/
+      
+      - name: Type checking (mypy)
+        continue-on-error: true # Optional for now
+        run: |
+          pip install mypy types-requests
+          mypy luxusb/ || echo "::warning::Type checking found issues"
+      
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+      
+      - name: Verify checksums script
+        run: |
+          python scripts/fetch_checksums.py --help
+          echo "::notice::Checksum fetcher is functional"
+  
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3-gi gir1.2-gtk-4.0 gir1.2-adwaita-1 \
+            parted dosfstools e2fsprogs grub-common syslinux-common
+          pip install -r requirements.txt
+      
+      - name: Test USB detection (safe)
+        run: |
+          python -c "from luxusb.utils.usb_detector import USBDetector; d = USBDetector(); print(f'USB detector initialized: {d is not None}')"
+      
+      - name: Test GRUB installer initialization
+        run: |
+          python -c "from luxusb.utils.grub_installer import GRUBInstaller; from luxusb.utils.usb_detector import USBDevice; from dataclasses import dataclass; print('GRUB installer imports OK')"
+      
+      - name: Test MEMDISK support
+        run: |
+          python -c "from luxusb.utils.memdisk import MEMDISKSupport; m = MEMDISKSupport(); print(f'MEMDISK support: {m.is_memdisk_available()}')"
+      
+      - name: Validate distro JSON files
+        run: |
+          python -c "
+          from pathlib import Path
+          import json
+          
+          distro_dir = Path('luxusb/data/distros')
+          for json_file in distro_dir.glob('*.json'):
+              with open(json_file) as f:
+                  data = json.load(f)
+                  assert 'id' in data, f'{json_file.name} missing id'
+                  assert 'releases' in data, f'{json_file.name} missing releases'
+                  print(f'✅ {json_file.name} valid')
+          "
+      
+      - name: Check for 32-bit UEFI support
+        run: |
+          if dpkg -l | grep -q grub-efi-ia32-bin; then
+            echo "::notice::32-bit UEFI packages installed"
+          else
+            echo "::warning::32-bit UEFI packages not available (expected on Ubuntu)"
+          fi

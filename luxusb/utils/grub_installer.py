@@ -7,8 +7,12 @@ import logging
 from pathlib import Path
 from typing import List, Optional
 
+from luxusb._version import __version__
 from luxusb.utils.distro_manager import Distro
 from luxusb.utils.custom_iso import CustomISO
+from luxusb.utils.memdisk import MEMDISKSupport
+from luxusb.utils.persistence import PersistenceManager
+from luxusb.utils.grub_theme import GRUBTheme
 
 logger = logging.getLogger(__name__)
 
@@ -16,21 +20,35 @@ logger = logging.getLogger(__name__)
 class GRUBInstaller:
     """Install and configure GRUB2 bootloader"""
     
-    def __init__(self, device: str, efi_mount: Path):
+    def __init__(self, device: str, efi_mount: Path, data_mount: Optional[Path] = None):
         """
         Initialize GRUB installer
         
         Args:
             device: Device path (e.g., /dev/sdb)
             efi_mount: Mount point of EFI partition
+            data_mount: Mount point of data partition (for persistence)
         """
         self.device = device
         self.efi_mount = efi_mount
+        self.data_mount = data_mount
         self.grub_dir = efi_mount / "EFI" / "BOOT"
+        self.memdisk_support = MEMDISKSupport()
+        self.theme_manager = GRUBTheme(efi_mount)
+        
+        # Initialize persistence manager if data partition provided
+        self.persistence_manager = None
+        if data_mount:
+            self.persistence_manager = PersistenceManager(data_mount)
     
     def install(self) -> bool:
         """
-        Install GRUB bootloader for both BIOS and UEFI
+        Install GRUB bootloader for BIOS and UEFI (64-bit + 32-bit)
+        
+        Installs:
+        - i386-pc (BIOS/Legacy)
+        - x86_64-efi (64-bit UEFI)
+        - i386-efi (32-bit UEFI, optional)
         
         Returns:
             True if successful, False otherwise
@@ -52,6 +70,12 @@ class GRUBInstaller:
             # Create default GRUB configuration
             if not self._create_default_config():
                 return False
+            
+            # Install MEMDISK for small ISO support (optional)
+            self._install_memdisk()
+            
+            # Install GRUB theme (optional but recommended)
+            self._install_theme()
             
             logger.info("GRUB installation completed successfully")
             return True
@@ -90,15 +114,34 @@ class GRUBInstaller:
             return False
     
     def _install_grub_efi(self) -> bool:
-        """Install GRUB for UEFI systems"""
+        """Install GRUB for UEFI systems (64-bit and 32-bit)"""
         logger.info("Installing GRUB for UEFI...")
         
+        # Install 64-bit UEFI (primary target)
+        success_64 = self._install_grub_target('x86_64-efi')
+        if not success_64:
+            logger.error("Failed to install 64-bit UEFI GRUB")
+            return self._install_grub_manual()
+        
+        # Try to install 32-bit UEFI (optional, for 2010-2012 tablets)
+        # This is a best-effort installation - failure is acceptable
+        success_32 = self._install_grub_target('i386-efi', optional=True)
+        if success_32:
+            logger.info("32-bit UEFI support enabled (Bay Trail/Cherry Trail tablets)")
+        else:
+            logger.info("32-bit UEFI not available (requires grub-efi-ia32-bin package)")
+        
+        return True
+    
+    def _install_grub_target(self, target: str, optional: bool = False) -> bool:
+        """Install GRUB for a specific target architecture"""
+        logger.info(f"Installing GRUB target: {target}...")
+        
         try:
-            # Install GRUB to EFI partition
             subprocess.run(
                 [
                     'grub-install',
-                    '--target=x86_64-efi',
+                    f'--target={target}',
                     '--efi-directory=' + str(self.efi_mount),
                     '--boot-directory=' + str(self.efi_mount / 'boot'),
                     '--removable',  # Create fallback bootloader
@@ -110,13 +153,44 @@ class GRUBInstaller:
                 check=True
             )
             
-            logger.info("GRUB installed successfully")
+            logger.info(f"GRUB {target} installed successfully")
+            
+            # Verify font file exists (critical for menu visibility)
+            font_path = self.efi_mount / "boot" / "grub" / "fonts" / "unicode.pf2"
+            if not font_path.exists():
+                logger.warning(f"Font file not found at {font_path}, trying to copy from system")
+                # Try to find and copy system font
+                system_font_paths = [
+                    Path("/usr/share/grub/unicode.pf2"),
+                    Path("/usr/share/grub2/unicode.pf2"),
+                    Path("/boot/grub/fonts/unicode.pf2"),
+                    Path("/boot/grub2/fonts/unicode.pf2")
+                ]
+                for sys_font in system_font_paths:
+                    if sys_font.exists():
+                        import shutil
+                        font_path.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(sys_font, font_path)
+                        logger.info(f"Copied font from {sys_font} to {font_path}")
+                        break
+                else:
+                    logger.error("Could not find unicode.pf2 font file on system!")
+                    logger.error("Menu may be invisible. Install grub-common or grub2-common package.")
+            
             return True
             
         except subprocess.CalledProcessError as e:
-            logger.error("Failed to install GRUB: %s", e.stderr)
-            # Try alternative method with grub-mkimage
-            return self._install_grub_manual()
+            if optional:
+                logger.debug(f"Optional {target} installation failed: {e.stderr}")
+            else:
+                logger.error(f"Failed to install GRUB {target}: {e.stderr}")
+            return False
+        except FileNotFoundError:
+            if optional:
+                logger.debug(f"grub-install not found for {target} (package not installed)")
+            else:
+                logger.error("grub-install not found - GRUB not installed on system")
+            return False
     
     def _install_grub_manual(self) -> bool:
         """Manual GRUB installation (fallback method)"""
@@ -159,21 +233,67 @@ class GRUBInstaller:
             logger.error("Manual GRUB installation failed: %s", e.stderr)
             return False
     
+    def _install_memdisk(self) -> bool:
+        """
+        Install MEMDISK binary for small ISO support (optional)
+        
+        Returns:
+            True if successful or not available (non-critical)
+        """
+        if not self.memdisk_support.is_memdisk_available():
+            logger.info("MEMDISK not available (install syslinux-common for utility ISO support)")
+            return True  # Non-critical, continue anyway
+        
+        boot_dir = self.efi_mount / "boot"
+        boot_dir.mkdir(parents=True, exist_ok=True)
+        
+        if self.memdisk_support.copy_memdisk_to_usb(boot_dir):
+            logger.info("MEMDISK installed successfully (enables small ISO RAM booting)")
+            return True
+        else:
+            logger.warning("MEMDISK installation failed (utility ISOs will use standard loopback)")
+            return True  # Non-critical
+    
+    def _install_theme(self) -> bool:
+        """
+        Install GRUB theme (optional)
+        
+        Returns:
+            True if successful or skipped (non-critical)
+        """
+        try:
+            if self.theme_manager.install_default_theme():
+                logger.info("✓ GRUB theme installed")
+                return True
+            else:
+                logger.warning("Theme installation failed, using basic theme")
+                return True  # Non-critical
+        except Exception as e:
+            logger.warning(f"Theme installation error: {e}")
+            return True  # Non-critical
+    
     def _create_default_config(self) -> bool:
         """Create default GRUB configuration"""
         grub_cfg_dir = self.efi_mount / "boot" / "grub"
         grub_cfg_dir.mkdir(parents=True, exist_ok=True)
         grub_cfg = grub_cfg_dir / "grub.cfg"
         
-        config = """# GRUB Configuration for LUXusb
+        # Check if theme is installed
+        theme_line = ""
+        if self.theme_manager.is_theme_installed():
+            theme_path = self.theme_manager.get_theme_path()
+            theme_line = f"\n# Load custom theme\nset theme={theme_path}"
+        
+        config = f"""# GRUB Configuration for LUXusb
 set timeout=30
+set timeout_style=menu
 set default=0
 
 # Graphics configuration
 set gfxmode=auto
-set gfxpayload=keep
+set gfxpayload=keep{theme_line}
 
-# Theme
+# Basic theme colors (fallback if theme not available)
 set menu_color_normal=white/black
 set menu_color_highlight=black/light-gray
 
@@ -185,32 +305,35 @@ insmod all_video
 insmod gfxterm
 
 # Load font for better display
-if loadfont unicode ; then
-    set gfxmode=auto
+load_video
+if loadfont $prefix/fonts/unicode.pf2 ; then
     terminal_output gfxterm
 else
     terminal_output console
 fi
 
 # Main menu
-menuentry 'LUXusb - No ISOs Found' {
+menuentry 'LUXusb - No ISOs Found' {{
     echo "No bootable ISOs found on this device"
     echo "Please download ISOs using LUXusb application"
     echo "Press any key to reboot..."
     read
     reboot
-}
+}}
 
-menuentry 'Reboot' {
+menuentry 'Reboot' {{
     reboot
-}
+}}
 
-menuentry 'Power Off' {
+menuentry 'Power Off' {{
     halt
-}
+}}
 """
         
         try:
+            # Ensure directory exists (defensive coding)
+            grub_cfg.parent.mkdir(parents=True, exist_ok=True)
+            
             with open(grub_cfg, 'w', encoding='utf-8') as f:
                 f.write(config)
             logger.info("Created GRUB config at %s", grub_cfg)
@@ -240,7 +363,9 @@ menuentry 'Power Off' {
         """
         logger.info("Updating GRUB configuration with %d ISOs", len(iso_paths))
         
-        grub_cfg = self.efi_mount / "boot" / "grub" / "grub.cfg"
+        grub_cfg_dir = self.efi_mount / "boot" / "grub"
+        grub_cfg_dir.mkdir(parents=True, exist_ok=True)
+        grub_cfg = grub_cfg_dir / "grub.cfg"
         
         # Generate menu entries for distribution ISOs
         entries = self._generate_iso_entries(iso_paths, distros)
@@ -252,20 +377,47 @@ menuentry 'Power Off' {
         
         total_count = len(iso_paths) + (len(custom_isos) if custom_isos else 0)
         
-        config = f"""# GRUB Configuration for LUXusb
-set timeout={timeout}
-set default=0
+        # Build help text with keyboard shortcuts as echo commands
+        help_lines = [
+            "╔═══════════════════════════════════════════════════════════════════════════╗",
+            "║                         LUXusb Multiboot Menu                             ║",
+            f"║                            Version {__version__}                                ║",
+            "╠═══════════════════════════════════════════════════════════════════════════╣",
+            f"║  {total_count} ISO{'s' if total_count != 1 else ''} available                                                           ║",
+            "║                                                                           ║",
+            "║  Navigation:                                                              ║",
+            "║    ↑/↓     - Select menu item                                             ║",
+            "║    Enter   - Boot selected item                                           ║",
+            "║    [A-Z]   - Quick jump to ISO (hotkeys shown in [brackets])              ║",
+            "║    Esc     - Return to previous menu / Exit submenu                       ║",
+            "║                                                                           ║",
+            "║  Boot Options (in ISO submenus):                                          ║",
+            "║    Normal        - Standard boot with default kernel parameters           ║",
+            "║    Safe Graphics - Disable GPU acceleration (nomodeset + vendor flags)    ║",
+            "║    MEMDISK       - Load entire ISO into RAM (small ISOs only)             ║",
+            "║                                                                           ║",
+            "║  Advanced:                                                                ║",
+            "║    Press 'c' for GRUB command line                                        ║",
+            "║    Press 'e' to edit boot parameters                                      ║",
+            "║                                                                           ║",
+            "║  Timeout: Menu auto-boots first item in 30 seconds                        ║",
+            "║           Press any key to stop countdown                                 ║",
+            "╚═══════════════════════════════════════════════════════════════════════════╝",
+            "",
+            "Press ESC to return to menu..."
+        ]
+        
+        # Convert to echo commands for GRUB
+        help_text = '\n    '.join([f'echo "{line}"' for line in help_lines])
+        
+        config = f"""# ═══════════════════════════════════════════════════════════════════════════
+# GRUB Configuration for LUXusb v{__version__}
+# Generated: $(date)
+# Total ISOs: {total_count}
+# ═══════════════════════════════════════════════════════════════════════════
 
-# CRITICAL: Remove TPM module to fix GRUB 2.04+ loopback boot black screen
-# See: https://bugs.launchpad.net/ubuntu/+source/grub2/+bug/1851311
-rmmod tpm
-
-# Graphics configuration
-set gfxmode=auto
-set gfxpayload=keep
-set pager=1
-
-# Load all required modules upfront
+# ═══ MODULE LOADING ═══
+# Load all required GRUB modules first
 insmod part_gpt
 insmod part_msdos
 insmod fat
@@ -283,32 +435,64 @@ insmod test
 insmod all_video
 insmod gfxterm
 
-# Set up graphics and load font
-if loadfont unicode ; then
-    set gfxmode=auto
+# ═══ GRAPHICS SETUP ═══
+# Initialize video subsystem and load font
+# CRITICAL: Font path must be explicit ($prefix/fonts/unicode.pf2)
+# Without proper font, menu will be invisible (black screen)
+set gfxmode=auto
+set gfxpayload=keep
+load_video
+if loadfont $prefix/fonts/unicode.pf2 ; then
+    # Font loaded successfully - use graphics terminal
     terminal_output gfxterm
 else
+    # Font loading failed - fall back to text console
+    # This prevents invisible menu (black screen)
     terminal_output console
+    echo "Warning: Font file not found, using text mode"
 fi
+
+# ═══ MENU APPEARANCE ═══
 set menu_color_normal=white/black
 set menu_color_highlight=black/light-gray
+set pager=1
 
-# Diagnostic information
-echo "LUXusb Multi-Boot Menu"
-echo "======================"
-echo "GRUB version: $grub_version"
-echo "{total_count} distribution(s) available"
-echo ""
+# ═══ MENU BEHAVIOR ═══
+# Set timeout AFTER terminal is initialized
+set timeout=30
+set timeout_style=menu
+set default=0
+
+# ═══ STORAGE SETUP ═══
+# Find LUXusb data partition by label
+search --no-floppy --set=root --label LUXusb
+
+# ═══ HELP & INFORMATION ═══
+menuentry 'ℹ️  View Help & Keyboard Shortcuts' {{
+    clear
+    {help_text}
+    sleep --interruptible 9999
+}}
+
+# ═══ BOOTABLE ISOS ═══
 
 {entries}
 
-menuentry 'Reboot' {{
+# ═══ SYSTEM CONTROLS ═══
+
+menuentry '🔄 Reboot System' {{
+    echo "Rebooting..."
     reboot
 }}
 
-menuentry 'Power Off' {{
+menuentry '⏻  Power Off' {{
+    echo "Shutting down..."
     halt
 }}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# End of GRUB Configuration
+# ═══════════════════════════════════════════════════════════════════════════
 """
         
         try:
@@ -323,16 +507,13 @@ menuentry 'Power Off' {{
     def _generate_iso_entries(
         self, iso_paths: List[Path], distros: List[Distro]
     ) -> str:
-        """Generate GRUB menu entries for ISOs"""
+        """Generate hierarchical GRUB menu entries for ISOs with boot options"""
         entries = []
         # Hotkeys for quick access (avoid GRUB reserved keys: c, e)
         hotkeys = 'abdfghijklmnopqrstuvwxyz123456789'
         
         for idx, (iso_path, distro) in enumerate(zip(iso_paths, distros)):
             # Get relative path from data partition root
-            # iso_path is absolute (e.g., /tmp/luxusb-mount/data/isos/arch/arch.iso)
-            # We need to extract the path relative to the data partition
-            # (e.g., /isos/arch/arch.iso for GRUB)
             iso_path_obj = Path(iso_path)
             
             # Find "isos" directory in path and construct relative path from there
@@ -350,264 +531,234 @@ menuentry 'Power Off' {{
             if not release:
                 continue
             
-            # Determine boot parameters based on distro family
-            boot_cmds = self._get_boot_commands(distro, iso_rel)
-            
             # Add hotkey if available
             hotkey_attr = ''
             if idx < len(hotkeys):
                 hotkey = hotkeys[idx]
-                hotkey_attr = f" --hotkey={hotkey}"
-                display_name = f"{distro.name} [{hotkey.upper()}]"
+                hotkey_attr = f"--hotkey={hotkey} "
+                display_name = f"[{hotkey.upper()}] {distro.name} {release.version}"
             else:
-                display_name = distro.name
+                display_name = f"{distro.name} {release.version}"
             
-            entry = f"""
-menuentry '{display_name} {release.version}'{hotkey_attr} {{
-    echo "Loading {distro.name}..."
-    
-    # Find data partition (partition 3 on USB device)
-    # Multi-method search with fallbacks for different hardware configurations
-    search --no-floppy --set=root --label LUXusb --hint hd0,gpt3
-    if [ "$root" = "" ]; then
-        # Fallback: USB might be second drive (hd1)
-        search --no-floppy --set=root --label LUXusb --hint hd1,gpt3
-    fi
-    if [ "$root" = "" ]; then
-        # Fallback: Exhaustive search without hint
-        search --no-floppy --set=root --label LUXusb
-    fi
-    
-    # Verify partition was found
-    if [ "$root" = "" ]; then
-        echo "ERROR: Could not find LUXusb data partition"
-        echo "Please check USB device is inserted correctly"
-        echo "Press any key to return to menu..."
-        read
-        return
-    fi
-    echo "Found root partition: $root"
-    
-    # Verify TPM is unloaded (critical for GRUB 2.04+)
-    # Note: Errors are automatically suppressed in GRUB
+            # Check if ISO is small enough for MEMDISK
+            iso_size_mb = iso_path_obj.stat().st_size // (1024 * 1024) if iso_path_obj.exists() else 0
+            use_memdisk = self.memdisk_support.should_use_memdisk(iso_size_mb)
+            is_windows_pe = self.memdisk_support.is_windows_pe_iso(iso_path_obj)
+            
+            # Create submenu with boot options and descriptions
+            submenu = f"""
+submenu {hotkey_attr}'{display_name}' {{
+  # ─── {distro.name} {release.version} ───
+  # Description: {distro.description if hasattr(distro, 'description') else 'Linux Distribution'}
+  # ISO Size: {iso_size_mb} MB
+  # Architecture: {release.architecture if hasattr(release, 'architecture') else 'x86_64'}
+  
+  menuentry '▶ Boot Normally (Recommended)' {{
+    # Standard boot with default kernel parameters
+    set isofile="{iso_rel}"
     rmmod tpm
-    
-    # Verify ISO file exists before attempting loopback
-    set isopath="{iso_rel}"
-    if [ ! -f "$isopath" ]; then
-        echo "ERROR: ISO file not found: $isopath"
-        echo "Partition: $root"
-        echo "Contents of /isos/:"
-        ls /isos/ || echo "Cannot list /isos/ directory"
-        echo "Press any key to return to menu..."
-        read
-        return
-    fi
-    
-    # Load ISO via loopback
-    echo "Loading ISO: {iso_rel}"
-    loopback loop "$isopath"
-    
-{boot_cmds}
+    loopback -d loop 2>/dev/null || true
+    loopback loop "$isofile"
+{self._get_boot_commands(distro, iso_rel, safe_mode=False)}
+  }}
+  
+  menuentry '🛡️  Safe Graphics Mode (GPU Issues)' {{
+    # Disables GPU acceleration for compatibility
+    # Use if: Black screen, corrupted display, GPU hangs
+    # Adds: nomodeset i915.modeset=0 nouveau.modeset=0 radeon.modeset=0
+    set isofile="{iso_rel}"
+    rmmod tpm
+    loopback -d loop 2>/dev/null || true
+    loopback loop "$isofile"
+{self._get_boot_commands(distro, iso_rel, safe_mode=True)}
+  }}"""
+            
+            # Add MEMDISK option if applicable
+            if is_windows_pe and self.memdisk_support.is_memdisk_available():
+                submenu += f"""
+  
+  menuentry '💾 MEMDISK Mode (Windows PE)' {{
+    # Loads entire ISO into RAM for Windows PE environments
+    # Requires: {iso_size_mb} MB of available RAM
+    # Benefit: Faster, no CD emulation issues
+    set isofile="{iso_rel}"
+    loopback -d loop 2>/dev/null || true
+{self.memdisk_support.get_windows_pe_boot_commands(iso_rel, "/boot/memdisk")}
+  }}"""
+                logger.info(f"Added Windows PE MEMDISK option for {distro.name}")
+            elif use_memdisk and self.memdisk_support.is_memdisk_available():
+                submenu += f"""
+  
+  menuentry '💾 MEMDISK Mode (Load to RAM)' {{
+    # Loads entire ISO into system RAM
+    # Requires: {iso_size_mb} MB of available RAM (ISO size)
+    # Benefit: Faster boot, USB can be removed after loading
+    # Warning: Slower initial load, uses RAM
+    set isofile="{iso_rel}"
+    loopback -d loop 2>/dev/null || true
+{self.memdisk_support.get_memdisk_boot_commands(iso_rel, "/boot/memdisk")}
+  }}"""
+                logger.info(f"Added MEMDISK option for {distro.name} ({iso_size_mb}MB)")
+            
+            # Close submenu with return option
+            submenu += f"""
+  
+  menuentry '←  Return to Main Menu' {{
+    # Press ESC or select this to go back
+    # Tip: ESC key works from anywhere in submenus
+    true
+  }}
 }}
 """
-            entries.append(entry)
+            entries.append(submenu)
         
         return '\n'.join(entries)
     
-    def _get_boot_commands(self, distro: Distro, iso_path: str) -> str:
-        """Get distro-specific boot commands"""
+    def _get_boot_commands(self, distro: Distro, iso_path: str, safe_mode: bool = False) -> str:
+        """Get distro-specific boot commands with optional safe mode parameters
+        
+        Args:
+            distro: Distribution object
+            iso_path: Path to ISO file
+            safe_mode: If True, add safe graphics parameters (nomodeset, etc.)
+        """
         family = getattr(distro, 'family', 'independent')
         distro_id = distro.id
+        
+        # Safe mode kernel parameters
+        # Based on research: nomodeset is critical, vendor-specific modeset=0 for compatibility
+        # Avoid nolapic/nolapic_timer/acpi=off - they break newer systems
+        safe_params = ""
+        if safe_mode:
+            safe_params = " nomodeset i915.modeset=0 nouveau.modeset=0 radeon.modeset=0 amdgpu.modeset=0"
+        
+        # Get persistence parameters if available
+        persistence_params = ""
+        if self.persistence_manager and self.persistence_manager.is_persistence_supported(distro_id):
+            # Check if persistence file exists
+            persistence_files = self.persistence_manager.list_persistence_files()
+            if distro_id in persistence_files:
+                kernel_params = self.persistence_manager.get_kernel_params(distro_id)
+                if kernel_params:
+                    persistence_params = " " + " ".join(kernel_params)
+                    logger.info(f"Added persistence for {distro_id}: {persistence_params}")
         
         # Ubuntu-based (Ubuntu, Pop!_OS, Linux Mint, elementary)
         if (family == 'debian' or
                 distro_id in ['ubuntu', 'popos', 'linuxmint',
                               'elementary']):
-            return f"""    # Ubuntu/Debian style boot
-    # Try loopback.cfg first (modern standard for Ubuntu 16.04+)
-    if [ -f (loop)/boot/grub/loopback.cfg ]; then
-        set iso_path="{iso_path}"
-        export iso_path
-        configfile (loop)/boot/grub/loopback.cfg
-    # Try Debian Live (newer Debian ISOs)
+            return f"""    if [ -f (loop)/boot/grub/loopback.cfg ]; then
+      set iso_path="{iso_path}"
+      export iso_path
+      configfile (loop)/boot/grub/loopback.cfg
     elif [ -f (loop)/live/vmlinuz ]; then
-        echo "Booting Debian Live..."
-        linux (loop)/live/vmlinuz boot=live findiso={iso_path} \
-            components nomodeset noapic acpi=off
-        initrd (loop)/live/initrd.img
-    # Try Ubuntu/Mint casper
+      linux (loop)/live/vmlinuz boot=live findiso={iso_path} components quiet splash{persistence_params}{safe_params}
+      initrd (loop)/live/initrd.img
     elif [ -f (loop)/casper/vmlinuz ]; then
-        echo "Booting Ubuntu/Casper..."
-        linux (loop)/casper/vmlinuz boot=casper \
-            iso-scan/filename={iso_path} noeject noprompt \
-            rootdelay=10 usb-storage.delay_use=5 \
-            nomodeset noapic acpi=off ---
-        initrd (loop)/casper/initrd
-    else
-        echo "Error: Could not find kernel in ISO"
-        echo "Searched: loopback.cfg, /live/vmlinuz, /casper/vmlinuz"
-        echo "Press any key to return to menu..."
-        read
+      linux (loop)/casper/vmlinuz boot=casper iso-scan/filename={iso_path} quiet splash{persistence_params}{safe_params}
+      initrd (loop)/casper/initrd
     fi"""
         
         # Arch-based (Arch, Manjaro, CachyOS)
         elif family == 'arch' or distro_id in ['arch', 'manjaro', 'cachyos-desktop', 'cachyos-handheld']:
-            return f"""    # Arch Linux style boot
-    if [ -f (loop)/arch/boot/x86_64/vmlinuz-linux ]; then
-        echo "Booting Arch Linux..."
-        linux (loop)/arch/boot/x86_64/vmlinuz-linux archisobasedir=arch img_dev=/dev/disk/by-label/LUXusb img_loop={iso_path} earlymodules=loop rootdelay=10 nomodeset noapic acpi=off
-        initrd (loop)/arch/boot/x86_64/initramfs-linux.img
+            return f"""    if [ -f (loop)/arch/boot/x86_64/vmlinuz-linux ]; then
+      linux (loop)/arch/boot/x86_64/vmlinuz-linux archisobasedir=arch img_dev=/dev/disk/by-label/LUXusb img_loop={iso_path} earlymodules=loop quiet{persistence_params}{safe_params}
+      initrd (loop)/arch/boot/x86_64/initramfs-linux.img
     elif [ -f (loop)/boot/vmlinuz-linux ]; then
-        echo "Booting Arch Linux (alternate path)..."
-        linux (loop)/boot/vmlinuz-linux archisobasedir=arch img_dev=/dev/disk/by-label/LUXusb img_loop={iso_path} earlymodules=loop rootdelay=10 nomodeset noapic acpi=off
-        initrd (loop)/boot/initramfs-linux.img
-    else
-        echo "Error: Could not find Arch kernel in ISO"
-        echo "Searched: /arch/boot/x86_64/vmlinuz-linux, /boot/vmlinuz-linux"
-        echo "Press any key to return to menu..."
-        read
+      linux (loop)/boot/vmlinuz-linux archisobasedir=arch img_dev=/dev/disk/by-label/LUXusb img_loop={iso_path} earlymodules=loop quiet{persistence_params}{safe_params}
+      initrd (loop)/boot/initramfs-linux.img
     fi"""
         
         # Fedora-based (Fedora, Bazzite, Nobara)
         elif family == 'fedora' or distro_id in ['fedora', 'bazzite-desktop', 'bazzite-handheld', 'nobara']:
-            return f"""    # Fedora style boot
-    if [ -f (loop)/isolinux/vmlinuz ]; then
-        echo "Booting Fedora..."
-        linux (loop)/isolinux/vmlinuz iso-scan/filename={iso_path} root=live:LABEL=LUXusb rd.live.image nomodeset noapic acpi=off
-        initrd (loop)/isolinux/initrd.img
+            return f"""    if [ -f (loop)/isolinux/vmlinuz ]; then
+      linux (loop)/isolinux/vmlinuz iso-scan/filename={iso_path} root=live:LABEL=LUXusb rd.live.image quiet{persistence_params}{safe_params}
+      initrd (loop)/isolinux/initrd.img
     elif [ -f (loop)/images/pxeboot/vmlinuz ]; then
-        echo "Booting Fedora (alternate path)..."
-        linux (loop)/images/pxeboot/vmlinuz iso-scan/filename={iso_path} root=live:LABEL=LUXusb rd.live.image nomodeset noapic acpi=off
-        initrd (loop)/images/pxeboot/initrd.img
-    else
-        echo "Error: Could not find Fedora kernel in ISO"
-        echo "Searched: /isolinux/vmlinuz, /images/pxeboot/vmlinuz"
-        echo "Press any key to return to menu..."
-        read
+      linux (loop)/images/pxeboot/vmlinuz iso-scan/filename={iso_path} root=live:LABEL=LUXusb rd.live.image quiet{persistence_params}{safe_params}
+      initrd (loop)/images/pxeboot/initrd.img
     fi"""
         
         # openSUSE
         elif distro_id in ['opensuse-tumbleweed', 'opensuse-leap']:
-            return f"""    # openSUSE style boot
-    if [ -f (loop)/boot/x86_64/loader/linux ]; then
-        echo "Booting openSUSE..."
-        linux (loop)/boot/x86_64/loader/linux isofrom_device=/dev/disk/by-label/LUXusb isofrom_system={iso_path} nomodeset noapic acpi=off
-        initrd (loop)/boot/x86_64/loader/initrd
-    else
-        echo "Error: Could not find openSUSE kernel in ISO"
-        echo "Searched: /boot/x86_64/loader/linux"
-        echo "Press any key to return to menu..."
-        read
+            return f"""    if [ -f (loop)/boot/x86_64/loader/linux ]; then
+      linux (loop)/boot/x86_64/loader/linux isofrom_device=/dev/disk/by-label/LUXusb isofrom_system={iso_path} quiet splash{safe_params}
+      initrd (loop)/boot/x86_64/loader/initrd
     fi"""
         
         # Generic fallback - try multiple common paths
         else:
-            return f"""    # Generic multi-path boot attempt
-    echo "Attempting generic boot..."
-    # Try loopback.cfg first (best compatibility)
-    if [ -f (loop)/boot/grub/loopback.cfg ]; then
-        echo "Using loopback.cfg"
-        set iso_path="{iso_path}"
-        export iso_path
-        configfile (loop)/boot/grub/loopback.cfg
+            return f"""    if [ -f (loop)/boot/grub/loopback.cfg ]; then
+      set iso_path="{iso_path}"
+      export iso_path
+      configfile (loop)/boot/grub/loopback.cfg
     elif [ -f (loop)/casper/vmlinuz ]; then
-        echo "Booting with casper (Ubuntu-style)..."
-        linux (loop)/casper/vmlinuz boot=casper iso-scan/filename={iso_path} nomodeset noapic acpi=off noeject noprompt
-        initrd (loop)/casper/initrd
+      linux (loop)/casper/vmlinuz boot=casper iso-scan/filename={iso_path} quiet splash noeject noprompt{safe_params}
+      initrd (loop)/casper/initrd
     elif [ -f (loop)/isolinux/vmlinuz ]; then
-        echo "Booting with isolinux..."
-        linux (loop)/isolinux/vmlinuz iso-scan/filename={iso_path} nomodeset noapic acpi=off
-        initrd (loop)/isolinux/initrd.img
+      linux (loop)/isolinux/vmlinuz iso-scan/filename={iso_path} quiet{safe_params}
+      initrd (loop)/isolinux/initrd.img
     elif [ -f (loop)/arch/boot/x86_64/vmlinuz-linux ]; then
-        echo "Booting with Arch kernel..."
-        linux (loop)/arch/boot/x86_64/vmlinuz-linux archisobasedir=arch img_loop={iso_path} nomodeset noapic acpi=off
-        initrd (loop)/arch/boot/x86_64/initramfs-linux.img
-    else
-        echo "Error: Could not find bootable kernel in ISO"
-        echo "Searched paths:"
-        echo "  - /boot/grub/loopback.cfg"
-        echo "  - /casper/vmlinuz"
-        echo "  - /isolinux/vmlinuz"
-        echo "  - /arch/boot/x86_64/vmlinuz-linux"
-        echo "Press any key to return to menu..."
-        read
+      linux (loop)/arch/boot/x86_64/vmlinuz-linux archisobasedir=arch img_loop={iso_path} quiet{safe_params}
+      initrd (loop)/arch/boot/x86_64/initramfs-linux.img
     fi"""
     
     def _generate_custom_iso_entries(self, custom_isos: List[CustomISO]) -> str:
-        """Generate GRUB menu entries for custom ISOs"""
+        """Generate hierarchical GRUB menu entries for custom ISOs with boot options"""
         entries = []
         
         for custom_iso in custom_isos:
             # Get relative path from data partition
             iso_rel = f"/isos/custom/{custom_iso.filename}"
             
-            entry = f"""
-menuentry '{custom_iso.display_name} (Custom)' {{
-    echo "Loading custom ISO: {custom_iso.display_name}"
-    
-    # Find data partition with fallbacks
-    search --no-floppy --set=root --label LUXusb --hint hd0,gpt3
-    if [ "$root" = "" ]; then
-        search --no-floppy --set=root --label LUXusb --hint hd1,gpt3
-    fi
-    if [ "$root" = "" ]; then
-        search --no-floppy --set=root --label LUXusb
-    fi
-    
-    if [ "$root" = "" ]; then
-        echo "ERROR: Could not find LUXusb data partition"
-        echo "Press any key to return to menu..."
-        read
-        return
-    fi
-    echo "Found root partition: $root"
-    
-    # Verify TPM is unloaded
+            # Create submenu with boot options
+            submenu = f"""
+submenu '{custom_iso.display_name} (Custom ISO)' {{
+  
+  menuentry 'Boot {custom_iso.display_name} (Normal)' {{
+    set isofile="{iso_rel}"
     rmmod tpm
+    loopback -d loop 2>/dev/null || true
+    loopback loop "$isofile"
     
-    # Verify ISO exists
-    set isopath="{iso_rel}"
-    if [ ! -f "$isopath" ]; then
-        echo "ERROR: Custom ISO not found: $isopath"
-        echo "Press any key to return to menu..."
-        read
-        return
-    fi
-    
-    # Load ISO via loopback
-    echo "Loading ISO: {iso_rel}"
-    loopback loop "$isopath"
-    
-    # Generic boot attempt
-    # Try common boot paths
-    echo "Attempting to boot {custom_iso.display_name}..."
-    
-    # Try Ubuntu/Debian style
+    # Try common boot paths - normal mode
     if [ -f (loop)/casper/vmlinuz ]; then
-        echo "Using Ubuntu/Casper boot method..."
-        linux (loop)/casper/vmlinuz boot=casper iso-scan/filename={iso_rel} nomodeset noapic acpi=off noeject noprompt
-        initrd (loop)/casper/initrd
-    # Try Fedora/CentOS style
+      linux (loop)/casper/vmlinuz boot=casper iso-scan/filename={iso_rel} quiet splash noeject noprompt
+      initrd (loop)/casper/initrd
     elif [ -f (loop)/isolinux/vmlinuz ]; then
-        echo "Using Fedora/isolinux boot method..."
-        linux (loop)/isolinux/vmlinuz iso-scan/filename={iso_rel} nomodeset noapic acpi=off
-        initrd (loop)/isolinux/initrd.img
-    # Try Arch style
+      linux (loop)/isolinux/vmlinuz iso-scan/filename={iso_rel} quiet
+      initrd (loop)/isolinux/initrd.img
     elif [ -f (loop)/arch/boot/x86_64/vmlinuz-linux ]; then
-        echo "Using Arch boot method..."
-        linux (loop)/arch/boot/x86_64/vmlinuz-linux archisobasedir=arch archisolabel=ARCHISO nomodeset noapic acpi=off
-        initrd (loop)/arch/boot/x86_64/initramfs-linux.img
-    else
-        echo "Could not find bootable kernel in ISO"
-        echo "This ISO may not be bootable or uses an unsupported boot method"
-        echo "Searched: /casper/vmlinuz, /isolinux/vmlinuz, /arch/boot/x86_64/vmlinuz-linux"
-        echo "Press any key to return to menu..."
-        read
+      linux (loop)/arch/boot/x86_64/vmlinuz-linux archisobasedir=arch archisolabel=ARCHISO
+      initrd (loop)/arch/boot/x86_64/initramfs-linux.img
     fi
+  }}
+  
+  menuentry 'Boot {custom_iso.display_name} (Safe Graphics)' {{
+    set isofile="{iso_rel}"
+    rmmod tpm
+    loopback -d loop 2>/dev/null || true
+    loopback loop "$isofile"
+    
+    # Try common boot paths - safe graphics mode
+    if [ -f (loop)/casper/vmlinuz ]; then
+      linux (loop)/casper/vmlinuz boot=casper iso-scan/filename={iso_rel} nomodeset i915.modeset=0 nouveau.modeset=0 noeject noprompt
+      initrd (loop)/casper/initrd
+    elif [ -f (loop)/isolinux/vmlinuz ]; then
+      linux (loop)/isolinux/vmlinuz iso-scan/filename={iso_rel} nomodeset i915.modeset=0 nouveau.modeset=0
+      initrd (loop)/isolinux/initrd.img
+    elif [ -f (loop)/arch/boot/x86_64/vmlinuz-linux ]; then
+      linux (loop)/arch/boot/x86_64/vmlinuz-linux archisobasedir=arch archisolabel=ARCHISO nomodeset i915.modeset=0 nouveau.modeset=0
+      initrd (loop)/arch/boot/x86_64/initramfs-linux.img
+    fi
+  }}
+  
+  menuentry 'Return to Main Menu' {{
+    true
+  }}
 }}
 """
-            entries.append(entry)
+            entries.append(submenu)
         
         return '\n'.join(entries)
 
