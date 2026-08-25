@@ -1,5 +1,7 @@
 # LUXusb
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U5R225QZH3)
+
 A user-friendly AppImage application for creating bootable USB drives with multiple Linux distributions.
 
 ## Features
